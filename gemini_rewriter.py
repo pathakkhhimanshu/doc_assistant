@@ -1,18 +1,21 @@
 import os
 import requests
 
-API_KEY = os.getenv("GEMINI_API_KEY")
-if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not found in environment")
-
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1/models/"
     "gemini-1.5-flash:generateContent"
 )
 
+def _get_api_key() -> str:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY not found in environment")
+    return api_key
+
 def rewrite_answer(question: str, raw_answer: str, mode: str = "quick") -> str:
     if not raw_answer.strip():
         return raw_answer
+    api_key = _get_api_key()
 
     style = (
         "short, exam-ready explanation"
@@ -48,7 +51,7 @@ Content:
 
     try:
         response = requests.post(
-            f"{GEMINI_URL}?key={API_KEY}",
+            f"{GEMINI_URL}?key={api_key}",
             json=payload,
             timeout=20
         )

@@ -12,6 +12,9 @@ class VectorStore:
         """
         Adds embedded chunks to FAISS index.
         """
+        if not chunks:
+            return
+
         embeddings = np.array(
             [chunk["embedding"] for chunk in chunks],
             dtype="float32"
@@ -24,13 +27,16 @@ class VectorStore:
         """
         Searches for top_k similar chunks.
         """
+        if getattr(self.index, "ntotal", 0) == 0:
+            return []
+
         query_embedding = np.array([query_embedding], dtype="float32")
 
-        distances, indices = self.index.search(query_embedding, top_k)
+        _distances, indices = self.index.search(query_embedding, top_k)
 
         results = []
         for idx in indices[0]:
-            if idx < len(self.chunks):
+            if 0 <= idx < len(self.chunks):
                 results.append(self.chunks[idx])
 
         return results
