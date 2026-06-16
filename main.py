@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import os
 import unicodedata
+import re
 
 from reader import read_document
 from simple_search import search_answer
@@ -22,7 +23,17 @@ os.makedirs(UPLOADS, exist_ok=True)
 # ---------- HELPERS ----------
 
 def safe_filename(name: str) -> str:
-    return unicodedata.normalize("NFKD", name)
+    """
+    Securely sanitizes filenames to prevent path traversal and arbitrary file write.
+    """
+    base = os.path.basename(name)
+    base = unicodedata.normalize("NFKD", base)
+    base = re.sub(r'[^a-zA-Z0-9.\-_]', '', base)
+
+    if not base or base.startswith('.'):
+        return "unnamed_upload.pdf"
+
+    return base
 
 
 def get_current_doc():
